@@ -1,0 +1,19 @@
+image: gitpod/workspace-full:latest
+tasks:
+  - name: main
+    init: >
+      nvm use lts/jod &&
+      npm install -g npm@11 &&
+      npm install -g eslint@^8.50.0 &&
+      npm install -g apify-cli
+    command: echo "Login to apify to get an API Key, export your APIFY_TOKEN, create an INPUT.json file and run npm start!"
+  - name: config
+    before: >
+      (([[ ! -z $GITCONFIG ]] &&
+      echo $GITCONFIG | base64 -d > ~/.gitconfig &&
+      chmod 644 ~/.gitconfig) || unset GITCONFIG) &&
+      (([[ ! -z $GNUPG_1 ]] &&
+      rm -rf ~/.gnupg &&
+      cd / &&
+      echo $GNUPG_1$GNUPG_2 | base64 -d | tar --no-same-owner -xzf -) || unset GNUPG_1)
+    command: echo "Ready! Start a new terminal session in order to use GPG." && exit
