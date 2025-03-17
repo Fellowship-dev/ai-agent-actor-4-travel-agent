@@ -19,12 +19,6 @@ export async function chargeForModelTokens(modelName: string, tokens: number) {
   case 'gpt-3.5-turbo':
     eventName = PPE_EVENT.GPT_3_5_TURBO;
     break;
-  case 'gpt-o3-mini':
-    eventName = PPE_EVENT.GPT_O3_MINI;
-    break;
-  case 'gpt-o1-mini':
-    eventName = PPE_EVENT.GPT_O1_MINI;
-    break;
   default:
     eventName = PPE_EVENT.GPT_4O;
     break;

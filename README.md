@@ -1,3 +1,5 @@
+[![Actor AI Travel Agent](https://apify.com/actor-badge?actor=maxfindel/ai-travel-agent)](https://apify.com/maxfindel/ai-travel-agent)
+
 # AI Travel Agent
 
 ## Introduction

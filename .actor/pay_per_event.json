@@ -19,16 +19,6 @@
     "eventDescription": "Flat fee for every 1000 tokens (input/output) used with gpt-3.5-turbo.",
     "eventPriceUsd": 0.0015
   },
-  "openai-1000-tokens-gpt-o3-mini": {
-    "eventTitle": "Price per 1000 OpenAI tokens for gpt-o3-mini",
-    "eventDescription": "Flat fee for every 1000 tokens (input/output) used with gpt-o3-mini.",
-    "eventPriceUsd": 0.0044
-  },
-  "openai-1000-tokens-gpt-o1-mini": {
-    "eventTitle": "Price per 1000 OpenAI tokens for gpt-o1-mini",
-    "eventDescription": "Flat fee for every 1000 tokens (input/output) used with gpt-o1-mini.",
-    "eventPriceUsd": 0.0044
-  },
   "duck-duck-go": {
     "eventTitle": "Price per Duck Duck Go search",
     "eventDescription": "Flat fee for every Duck Duck Go search.",
@@ -39,14 +29,14 @@
     "eventDescription": "Flat fee for every web page scraped.",
     "eventPriceUsd": 0.01
   },
-  "zillow-search':": {
-    "eventTitle": "Price per Zillow search result",
-    "eventDescription": "Flat fee for every result when searching Zillow.",
-    "eventPriceUsd": 0.002
+  "airbnb-search':": {
+    "eventTitle": "Price per Airbnb search result",
+    "eventDescription": "Flat fee for every result when searching Airbnb.",
+    "eventPriceUsd": 0.001
   },
-  "zip-code-search": {
-    "eventTitle": "Price per Zip Code search",
-    "eventDescription": "Flat fee for every Zip Code search.",
-    "eventPriceUsd": 0.01
+  "tripadvisor-search':": {
+    "eventTitle": "Price per TripAdvisor search result",
+    "eventDescription": "Flat fee for every result when searching TripAdvisor.",
+    "eventPriceUsd": 0.003
   }
 }

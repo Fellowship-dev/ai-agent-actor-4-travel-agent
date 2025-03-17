@@ -43,23 +43,5 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
       input: 0.0005,
       output: 0.0015,
     },
-  },
-  'o3-mini': {
-    model: 'o3-mini',
-    maxTokens: 4096,
-    interface: 'chat',
-    cost: {
-      input: 0.0011,
-      output: 0.0044,
-    },
-  },
-  'o1-mini': {
-    model: 'o1-mini',
-    maxTokens: 2048,
-    interface: 'chat',
-    cost: {
-      input: 0.0011,
-      output: 0.0044,
-    },
-  },
+  }
 };
