@@ -5,40 +5,29 @@ import { z } from 'zod';
 import { chargeForToolUsage } from '../utils/ppe_handler.js';
 
 /**
- * Interface for parameters required by AirbnbSearch class.
+ * Interface for parameters required by TripadvisorSearch class.
  */
-export interface AirbnbSearchParams {
+export interface TripadvisorSearchParams {
   apifyClient: ApifyClient;
   log: Log | Console;
 }
 
 /**
- * Tool that uses the AirbnbSearch function
+ * Tool that uses the TripadvisorSearch function
  */
-export class AirbnbSearch extends StructuredTool {
+export class TripadvisorSearch extends StructuredTool {
   protected log: Log | Console;
   protected apifyClient: ApifyClient;
 
-  name = 'airbnb_search';
+  name = 'tripadvisor_search';
 
-  description = 'Searches for accomodations on Airbnb based on a list of neighborhoods (at least one) and returns an Apify datasetId to explore the results.';
+  description = 'Searches for attractions on Tripadvisor based on a city (not a neighborhood) and returns an Apify datasetId to explore the results.';
 
   schema = z.object({
-    locations: z.string().array(),
-    minimumPrice: z.number(),
-    maximumPrice: z.number(),
-    adults: z.number(),
-    children: z.number(),
-    infants: z.number(),
-    pets: z.number().optional(),
-    checkIn: z.string().describe('yyyy-mm-dd'),
-    checkOut: z.string().describe('yyyy-mm-dd'),
-    minBathrooms: z.number().optional(),
-    minBedrooms: z.number().optional(),
-    minBeds: z.number().optional(),
+    location: z.string().describe('Peferred format: "City, Country"'),
   });
 
-  constructor(fields?: AirbnbSearchParams) {
+  constructor(fields?: TripadvisorSearchParams) {
     super(...arguments);
     this.log = fields?.log ?? console;
     this.apifyClient = fields?.apifyClient ?? new ApifyClient();
@@ -46,20 +35,18 @@ export class AirbnbSearch extends StructuredTool {
 
   override async _call(arg: z.output<typeof this.schema>) {
     const actorInput = {
-      adults: arg.adults,
-      children: arg.children,
-      infants: arg.infants,
-      pets: arg.pets,
-      checkIn: arg.checkIn,
-      checkOut: arg.checkOut,
-      minBathrooms: arg.minBathrooms,
-      minBedrooms: arg.minBedrooms,
-      minBeds: arg.minBeds,
-      locationQueries: arg.locations.slice(0, 3),
-      priceMax: arg.maximumPrice,
-      priceMin: arg.minimumPrice,
       currency: 'USD',
-      locale: 'en-US',
+      includeAiReviewsSummary: true,
+      includeAttractions: true,
+      includeHotels: false,
+      includeNearbyResults: false,
+      includePriceOffers: false,
+      includeRestaurants: true,
+      includeTags: true,
+      includeVacationRentals: false,
+      language: 'en',
+      maxItemsPerQuery: 100,
+      query: arg.location,
     };
     // checks for cached stored version
     const key = JSON.stringify(actorInput);
@@ -68,7 +55,7 @@ export class AirbnbSearch extends StructuredTool {
     const { username } = await this.apifyClient.user().get();
     const today = new Date().toISOString().slice(0, 10);
     const datasetName = `${today}-${digest}`;
-    // const datasetName = '2025-03-17-7f0e1b07b161269a'; //DEBUG
+    // const datasetName = '2025-03-17-f0fa535166c7c7f3'; //DEBUG
     this.log.debug(`Searching for datasetId: ${username}/${datasetName}`);
     const existingDataset = await this.apifyClient
       .dataset(`${username}/${datasetName}`)
@@ -81,10 +68,10 @@ export class AirbnbSearch extends StructuredTool {
       );
     } else {
       this.log.debug(
-        `Calling AirbnbSearch with input: ${JSON.stringify(actorInput)}`
+        `Calling TripadvisorSearch with input: ${JSON.stringify(actorInput)}`
       );
       const actorRun = await this.apifyClient
-        .actor('tri_angle/new-fast-airbnb-scraper')
+        .actor('maxcopell/tripadvisor')
         .call(actorInput, { maxItems: 100 }); // DEBUG
       await this.apifyClient
         .dataset(actorRun.defaultDatasetId)
@@ -95,9 +82,9 @@ export class AirbnbSearch extends StructuredTool {
       totalItems = dataset.total;
       await chargeForToolUsage(this.name, dataset.total);
     }
-    this.log.debug(`AirbnbSearch response: ${username}/${datasetName}`);
-    return `Results for Airbnb Search can be found in dataset with id '${username}/${datasetName}'. This dataset contains ${totalItems} items in total.`;
+    this.log.debug(`TripadvisorSearch response: ${username}/${datasetName}`);
+    return `Results for Tripadvisor Search can be found in dataset with id '${username}/${datasetName}'. This dataset contains ${totalItems} items in total.`;
   }
 }
 
-export default AirbnbSearch;
+export default TripadvisorSearch;

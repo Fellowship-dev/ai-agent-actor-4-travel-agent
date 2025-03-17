@@ -1,0 +1,87 @@
+import { Log, ApifyClient } from 'apify';
+import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { createToolCallingAgent, AgentExecutor } from 'langchain/agents';
+import { ChatOpenAI } from '@langchain/openai';
+import { StructuredToolInterface } from '@langchain/core/tools';
+import DatasetExplorer from '../tools/dataset_explorer.js';
+import { CostHandler } from '../utils/cost_handler.js';
+
+/**
+ * Interface for parameters required by PropertyAgent class.
+ */
+export interface PropertyAgentParams {
+  apifyClient: ApifyClient,
+  modelName: string,
+  openaiApiKey: string,
+  log: Log | Console;
+}
+
+/**
+ * An AI Agent that explores an Apify dataset in search for the perfect results.
+ */
+export class PropertyAgent {
+  protected log: Log | Console;
+  protected apifyClient: ApifyClient;
+  public agentExecutor: AgentExecutor;
+  public costHandler: CostHandler;
+
+  constructor(fields?: PropertyAgentParams) {
+    this.log = fields?.log ?? console;
+    this.apifyClient = fields?.apifyClient ?? new ApifyClient();
+    this.costHandler = new CostHandler(fields?.modelName ?? 'gpt-4o-mini', this.log);
+    const llm = new ChatOpenAI({
+      model: fields?.modelName,
+      apiKey: fields?.openaiApiKey,
+      temperature: 0,
+      callbacks: [
+        this.costHandler,
+      ],
+    });
+    const tools = this.buildTools(this.apifyClient, this.log);
+    const prompt = this.buildPrompt();
+    const agent = createToolCallingAgent({
+      llm,
+      tools,
+      prompt,
+    });
+    this.agentExecutor = new AgentExecutor({
+      agent,
+      tools,
+      verbose: false,
+      maxIterations: 5,
+    });
+  }
+
+  protected buildTools(
+    apifyClient: ApifyClient, log: Log | Console
+  ): StructuredToolInterface[] {
+    // Tools are initialized to be passed to the agent
+    const datasetExplorer = new DatasetExplorer({ apifyClient, log });
+    return [
+      datasetExplorer,
+    ];
+  }
+
+  protected buildPrompt(): ChatPromptTemplate {
+    return ChatPromptTemplate.fromMessages([
+      ['system',
+        'You are a experienced travel agent that wants to help the user plan the perfect trip. '
+        + "You'll have a datasetId and the total amount of items available to explore. "
+        + 'Explore only one batch of 25 results (using limit=25). '
+        + 'Skip the first items based on the number of items that were already checked (using offset=itemsChecked). '
+        + "When exploring the dataset, include only these fields exactly as written here: ['image','category','name','rankingPosition','priceLevel','webUrl','rating','numberOfReviews']"
+        + 'Remember: do not call the DatasetExplorer tool more than once, or you will die. \n\n'
+        + 'The user may have specified other requests like romantic dinners, outdoor activities, etc. '
+        + 'Filter the results based on this information or notify the user if you are unable to do so. '
+        + 'Use your expertise to recommend the best results that you can find that matches the user criteria. '
+        + 'If the total amount of items (totalItems) is over 100, select up to 2 results otherwise pick up to 3. Try to at least pick one. '
+        + "As your response, return only a JSON object (and nothing more! not even a ```json or ``` wrapper) with the key 'itemsChecked' as a number with the amount of results that you received from the dataset_explorer and the key 'recommendations' with your recommendations in JSON format, using the same fields that you specified when calling the dataset_explorer."
+      ],
+      ['placeholder', '{chat_history}'],
+      ['human', '{input}'],
+      ['placeholder', '{agent_scratchpad}'],
+    ]);
+  }
+}
+
+export default PropertyAgent;

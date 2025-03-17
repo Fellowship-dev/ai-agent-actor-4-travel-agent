@@ -2,9 +2,11 @@ import dotenv from 'dotenv';
 import { Actor, ApifyClient, log } from 'apify';
 import { StateGraph, StateGraphArgs, START, END } from '@langchain/langgraph';
 import LocationAgent from './agents/location.js';
-import DeciderAgent from './agents/decider.js';
-import ResearcherAgent from './agents/researcher.js';
+import AirbnbDeciderAgent from './agents/airbnb_decider.js';
+import AirbnbResearcherAgent from './agents/airbnb_researcher.js';
 import SuccessAgent from './agents/success.js';
+import TripadvisorDeciderAgent from './agents/tripadvisor_decider.js';
+import TripadvisorResearcherAgent from './agents/tripadvisor_researcher.js';
 import { chargeForActorStart } from './utils/ppe_handler.js';
 
 // if available, .env variables are loaded
@@ -64,11 +66,16 @@ const apifyClient = new ApifyClient({
 type StateSchema = {
   instructions: string;
   bestLocations: string;
-  datasetId: string;
-  totalItems: number;
-  assumptions: string;
-  itemsChecked: number;
-  recommendations: string[];
+  airbnbDatasetId: string;
+  airbnbTotalItems: number;
+  airbnbAssumptions: string;
+  airbnbItemsChecked: number;
+  airbnbRecommendations: string[];
+  tripadvisorDatasetId: string;
+  tripadvisorTotalItems: number;
+  tripadvisorAssumptions: string;
+  tripadvisorItemsChecked: number;
+  tripadvisorRecommendations: string[];
   output: string;
 }
 
@@ -81,23 +88,43 @@ const graphState: StateGraphArgs<StateSchema>['channels'] = {
     value: (x?: string, y?: string) => y ?? x ?? '',
     default: () => '',
   },
-  datasetId: {
+  airbnbDatasetId: {
     value: (x?: string, y?: string) => y ?? x ?? '',
     default: () => '',
   },
-  totalItems: {
+  airbnbTotalItems: {
     value: (x?: number, y?: number) => y ?? x ?? 0,
     default: () => 0,
   },
-  assumptions: {
+  airbnbAssumptions: {
     value: (x?: string, y?: string) => y ?? x ?? '',
     default: () => '',
   },
-  itemsChecked: {
+  airbnbItemsChecked: {
     value: (x?: number, y?: number) => y ?? x ?? 0,
     default: () => 0,
   },
-  recommendations: {
+  airbnbRecommendations: {
+    value: (x?: string[], y?: string[]) => y ?? x ?? [],
+    default: () => [],
+  },
+  tripadvisorDatasetId: {
+    value: (x?: string, y?: string) => y ?? x ?? '',
+    default: () => '',
+  },
+  tripadvisorTotalItems: {
+    value: (x?: number, y?: number) => y ?? x ?? 0,
+    default: () => 0,
+  },
+  tripadvisorAssumptions: {
+    value: (x?: string, y?: string) => y ?? x ?? '',
+    default: () => '',
+  },
+  tripadvisorItemsChecked: {
+    value: (x?: number, y?: number) => y ?? x ?? 0,
+    default: () => 0,
+  },
+  tripadvisorRecommendations: {
     value: (x?: string[], y?: string[]) => y ?? x ?? [],
     default: () => [],
   },
@@ -121,14 +148,14 @@ async function locationNode(state: StateSchema) {
   return { bestLocations: response.output };
 }
 
-async function researcherNode(state: StateSchema) {
-  const researcherAgent = new ResearcherAgent({
+async function airbnbResearcherNode(state: StateSchema) {
+  const airbnbResearcherAgent = new AirbnbResearcherAgent({
     apifyClient,
     modelName,
     openaiApiKey: openaiApiKey ?? process.env.OPENAI_API_KEY,
     log,
   });
-  const { agentExecutor, costHandler } = researcherAgent;
+  const { agentExecutor, costHandler } = airbnbResearcherAgent;
   const input = 'The user asked sent this exact query:\n\n'
     + `'${state.instructions}'\n\n`
     + 'You asked someone for help to get the best locations in that city and country. '
@@ -136,20 +163,24 @@ async function researcherNode(state: StateSchema) {
     + `'${state.bestLocations}'\n\n`
     + 'Please make some research to gather information to be able to answer the user accordingly.';
   const response = await agentExecutor.invoke({ input });
-  log.debug(`researcherAgent 🤖 : ${response.output}`);
+  log.debug(`airbnbResearcherAgent 🤖 : ${response.output}`);
   const { datasetId, totalItems, assumptions } = JSON.parse(response.output);
   await costHandler.logOrChargeForTokens(modelName, tokenCostActive);
-  return { datasetId, totalItems, assumptions };
+  return {
+    airbnbDatasetId: datasetId,
+    airbnbTotalItems: totalItems,
+    airbnbAssumptions: assumptions,
+  };
 }
 
-async function deciderNode(state: StateSchema) {
-  const deciderAgent = new DeciderAgent({
+async function airbnbDeciderNode(state: StateSchema) {
+  const airbnbDeciderAgent = new AirbnbDeciderAgent({
     apifyClient,
     modelName,
     openaiApiKey: openaiApiKey ?? process.env.OPENAI_API_KEY,
     log,
   });
-  const { agentExecutor, costHandler } = deciderAgent;
+  const { agentExecutor, costHandler } = airbnbDeciderAgent;
   const input = 'The user asked sent this exact query:\n\n'
     + `'${state.instructions}'\n\n`
     + 'You asked someone for help to get the best locations in that city and country. '
@@ -157,38 +188,118 @@ async function deciderNode(state: StateSchema) {
     + `'${state.bestLocations}'\n\n`
     + 'You asked someone else for help to get the best places to stay in in those locations using Airbnb. '
     + 'The answer you received was this:\n\n'
-    + `Airbnb Apify dataset ID: '${state.datasetId}'\n`
-    + `Total items in Airbnb dataset: '${state.totalItems}'\n`
-    + `Assumptions made when cretating the Airbnb dataset:: '${state.assumptions}'\n`
-    + `Total results already checked in Airbnb dataset: itemsChecked='${state.itemsChecked}'\n\n`
+    + `Airbnb Apify dataset ID: '${state.airbnbDatasetId}'\n`
+    + `Total items in Airbnb dataset: '${state.airbnbTotalItems}'\n`
+    + `Assumptions made when cretating the Airbnb dataset:: '${state.airbnbAssumptions}'\n`
+    + `Total results already checked in Airbnb dataset: airbnbItemsChecked='${state.airbnbItemsChecked}'\n\n`
     + 'Please explore theavailable datasets for the best results.';
   const response = await agentExecutor.invoke({ input });
-  log.debug(`deciderAgent 🤖 : ${response.output}`);
+  log.debug(`airbnbDeciderAgent 🤖 : ${response.output}`);
   const { itemsChecked, recommendations } = JSON.parse(response.output);
   await costHandler.logOrChargeForTokens(modelName, tokenCostActive);
   return {
-    itemsChecked: state.itemsChecked + itemsChecked,
-    recommendations: [...state.recommendations, ...recommendations]
+    airbnbItemsChecked: state.airbnbItemsChecked + itemsChecked,
+    airbnbRecommendations: [
+      ...state.airbnbRecommendations,
+      ...recommendations
+    ]
   };
 }
 
-const resultsCheckedRouter = (state: StateSchema) => {
-  const allResultsChecked = state.itemsChecked >= state.totalItems;
+const airbnbResultsRouter = (state: StateSchema) => {
+  const allResultsChecked = state.airbnbItemsChecked >= state.airbnbTotalItems;
   log.debug(`allResultsChecked: ${allResultsChecked}`);
-  const thousandResultsChecked = state.itemsChecked > 1000;
-  log.debug(`thousandResultsChecked: ${thousandResultsChecked}`);
-  const fifteenRecommendationsFound = state.recommendations.length > 15;
-  log.debug(`fifteenRecommendationsFound: ${fifteenRecommendationsFound}`);
+  const hundredResultsChecked = state.airbnbItemsChecked > 100;
+  log.debug(`hundredResultsChecked: ${hundredResultsChecked}`);
+  const fiveRecommendationsFound = state.airbnbRecommendations.length > 5;
+  log.debug(`fiveRecommendationsFound: ${fiveRecommendationsFound}`);
   if (
     allResultsChecked
-    || thousandResultsChecked
-    || fifteenRecommendationsFound
+    || hundredResultsChecked
+    || fiveRecommendationsFound
   ) {
     // if any of the above criteria are met, it passes the ball to the successAgent
     return 'success';
   }
   // if none of the above criteria are met, it runs the same node again
-  return 'decider';
+  return 'airbnbDecider';
+};
+
+async function tripadvisorResearcherNode(state: StateSchema) {
+  const tripadvisorResearcherAgent = new TripadvisorResearcherAgent({
+    apifyClient,
+    modelName,
+    openaiApiKey: openaiApiKey ?? process.env.OPENAI_API_KEY,
+    log,
+  });
+  const { agentExecutor, costHandler } = tripadvisorResearcherAgent;
+  const input = 'The user asked sent this exact query:\n\n'
+    + `'${state.instructions}'\n\n`
+    + 'You asked someone for help to get the best locations in that city and country. '
+    + 'The answer you received was this:\n\n'
+    + `'${state.bestLocations}'\n\n`
+    + 'Please make some research to gather information to be able to answer the user accordingly.';
+  const response = await agentExecutor.invoke({ input });
+  log.debug(`tripadvisorResearcherAgent 🤖 : ${response.output}`);
+  const { datasetId, totalItems, assumptions } = JSON.parse(response.output);
+  await costHandler.logOrChargeForTokens(modelName, tokenCostActive);
+  return {
+    tripadvisorDatasetId: datasetId,
+    tripadvisorTotalItems: totalItems,
+    tripadvisorAssumptions: assumptions,
+  };
+}
+
+async function tripadvisorDeciderNode(state: StateSchema) {
+  const tripadvisorDeciderAgent = new TripadvisorDeciderAgent({
+    apifyClient,
+    modelName,
+    openaiApiKey: openaiApiKey ?? process.env.OPENAI_API_KEY,
+    log,
+  });
+  const { agentExecutor, costHandler } = tripadvisorDeciderAgent;
+  const input = 'The user asked sent this exact query:\n\n'
+    + `'${state.instructions}'\n\n`
+    + 'You asked someone for help to get the best locations in that city and country. '
+    + 'The answer you received was this:\n\n'
+    + `'${state.bestLocations}'\n\n`
+    + 'You asked someone else for help to get the attractions in in those locations using Tripadvisor. '
+    + 'The answer you received was this:\n\n'
+    + `Tripadvisor Apify dataset ID: '${state.tripadvisorDatasetId}'\n`
+    + `Total items in Tripadvisor dataset: '${state.tripadvisorTotalItems}'\n`
+    + `Assumptions made when cretating the Tripadvisor dataset:: '${state.tripadvisorAssumptions}'\n`
+    + `Total results already checked in Tripadvisor dataset: tripadvisorItemsChecked='${state.tripadvisorItemsChecked}'\n\n`
+    + 'Please explore theavailable datasets for the best results.';
+  const response = await agentExecutor.invoke({ input });
+  log.debug(`tripadvisorDeciderAgent 🤖 : ${response.output}`);
+  const { itemsChecked, recommendations } = JSON.parse(response.output);
+  await costHandler.logOrChargeForTokens(modelName, tokenCostActive);
+  return {
+    tripadvisorItemsChecked: state.tripadvisorItemsChecked + itemsChecked,
+    tripadvisorRecommendations: [
+      ...state.tripadvisorRecommendations, ...recommendations
+    ]
+  };
+}
+
+const tripadvisorResultsRouter = (state: StateSchema) => {
+  const allResultsChecked = state.tripadvisorItemsChecked
+    >= state.tripadvisorTotalItems;
+  log.debug(`allResultsChecked: ${allResultsChecked}`);
+  const hundredResultsChecked = state.tripadvisorItemsChecked > 100;
+  log.debug(`hundredResultsChecked: ${hundredResultsChecked}`);
+  const fiveRecommendationsFound = state.tripadvisorRecommendations.length > 5;
+  log.debug(`fiveRecommendationsFound: ${fiveRecommendationsFound}`);
+  if (
+    allResultsChecked
+    || hundredResultsChecked
+    || fiveRecommendationsFound
+  ) {
+    // if any of the above criteria are met, it passes the ball to the successAgent
+    return 'success';
+  }
+  // if none of the above criteria are met, it runs the same node again
+  return 'tripadvisorDecider';
 };
 
 async function successNode(state: StateSchema) {
@@ -206,11 +317,19 @@ async function successNode(state: StateSchema) {
     + `'${state.bestLocations}'\n\n`
     + 'You asked someone else for help to get the best places to stay in those locations using Airbnb and their expert jugdgement. '
     + 'The answer you received was this:\n\n'
-    + `Assumptions made when searching Airbnb: '${state.assumptions}'\n\n`
-    + `Total places to stay checked: '${state.itemsChecked}'\n`
-    + `Total places to stay recommended: '${state.recommendations.length}'\n`
-    + `Best places to stay in stringified JSON format: '${JSON.stringify(state.recommendations)}'\n`
-    + 'Please select the top 5 places to stay and answer the user explaining the whole process in markdown format.';
+    + `Assumptions made when searching Airbnb: '${state.tripadvisorAssumptions}'\n\n`
+    + `Total places to stay checked: '${state.tripadvisorItemsChecked}'\n`
+    + `Total places to stay recommended: '${state.tripadvisorRecommendations.length}'\n`
+    + `Best places to stay in stringified JSON format: '${JSON.stringify(state.tripadvisorRecommendations)}'\n`
+    + 'You asked someone else for help to get the attractions in those locations using Tripadvisor and their expert jugdgement. '
+    + 'The answer you received was this:\n\n'
+    + `Assumptions made when searching Tripadvisor: '${state.tripadvisorAssumptions}'\n\n`
+    + `Total attractions checked: '${state.tripadvisorItemsChecked}'\n`
+    + `Total attractions recommended: '${state.tripadvisorRecommendations.length}'\n`
+    + `Best attractions in stringified JSON format: '${JSON.stringify(state.tripadvisorRecommendations)}'\n`
+    + 'Please mention the explored neighborhoods and their descriptions to the user.'
+    + 'Please select the top 3 places to stay and recommend the top 3 attractions (hopefully in the same neighborhoods).'
+    + 'Please answer the user explaining the whole process in markdown format.';
   const response = await agentExecutor.invoke({ input });
   log.debug(`successNode 🤖 : ${response.output}`);
   await costHandler.logOrChargeForTokens(modelName, tokenCostActive);
@@ -219,13 +338,18 @@ async function successNode(state: StateSchema) {
 
 const graph = new StateGraph({ channels: graphState })
   .addNode('location', locationNode)
-  .addNode('researcher', researcherNode)
-  .addNode('decider', deciderNode)
+  .addNode('airbnbResearcher', airbnbResearcherNode)
+  .addNode('airbnbDecider', airbnbDeciderNode)
+  .addNode('tripadvisorResearcher', tripadvisorResearcherNode)
+  .addNode('tripadvisorDecider', tripadvisorDeciderNode)
   .addNode('success', successNode)
   .addEdge(START, 'location')
-  .addEdge('location', 'researcher')
-  .addEdge('researcher', 'decider')
-  .addConditionalEdges('decider', resultsCheckedRouter)
+  .addEdge('location', 'airbnbResearcher')
+  .addEdge('airbnbResearcher', 'airbnbDecider')
+  .addConditionalEdges('airbnbDecider', airbnbResultsRouter)
+  .addEdge('location', 'tripadvisorResearcher')
+  .addEdge('tripadvisorResearcher', 'tripadvisorDecider')
+  .addConditionalEdges('tripadvisorDecider', tripadvisorResultsRouter)
   .addEdge('success', END);
 
 const runnable = graph.compile();

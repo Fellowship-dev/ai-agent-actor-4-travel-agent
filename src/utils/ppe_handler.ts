@@ -51,6 +51,9 @@ export async function chargeForToolUsage(toolName: string, count: number) {
   case 'airbnb_search':
     eventName = PPE_EVENT.AIRBNB_SEARCH;
     break;
+  case 'tripadvisor_search':
+    eventName = PPE_EVENT.TRIPADVISOR_SEARCH;
+    break;
   default:
     eventName = '';
     break;

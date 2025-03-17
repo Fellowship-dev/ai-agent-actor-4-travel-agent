@@ -8,7 +8,7 @@
       "type": "string",
       "description": "Ask the agent for help to plan the perfect trip.",
       "editor": "textarea",
-      "prefill": "I want to buy a house with a pool in Miami for less than 1 million dollars. Can you help me?"
+      "prefill": "Looking for a 2-bedroom accommodation in Barcelona with ratings above 4.0 and a price between $100 and $300 per night. Can you help me?"
     },
     "openaiApiKey": {
       "title": "OpenAI API key",

@@ -45,7 +45,7 @@ The following fields are recommeded to start using the AI Travel Agent:
 ```
 
 ## AI Agent Flow Chart
-![Mermaid Flow Chart](https://github.com/Fellowship-dev/ai-agent-actor-5-real-state-agent/blob/main/mermaid.png?raw=true)
+![Mermaid Flow Chart](https://github.com/Fellowship-dev/ai-agent-actor-4-travel-agent/blob/main/mermaid.png?raw=true)
 
 ## Expected Output
 Upon successful execution, the expected output will resemble the following markdown format:
