@@ -1,10 +1,10 @@
-# AI Real State Agent
+# AI Travel Agent
 
 ## Introduction
-The **AI Real State Agent** is designed to assist users in finding their perfect home through a simple conversational interface. With this agent, users can input specific criteria for their desired property, such as location and budget, and receive tailored suggestions.
+The **AI Travel Agent** is designed to assist users in planning their perfect trip through a simple conversational interface. With this agent, users can input specific criteria for their desired destination, such as neighborhood and budget, and receive tailored suggestions.
 
 ### Key Features
-- Chat-based interaction for personalized home searches.
+- Chat-based interaction for personalized trip planning.
 - Integration with OpenAI's advanced models for natural language understanding.
 - Supports multiple GPT models based on user preference.
 - Uses cache based on input to reduce time and cost of tool usage.
@@ -13,16 +13,15 @@ The **AI Real State Agent** is designed to assist users in finding their perfect
 ### Supported tools by AI Agent
 - Explores Apify Datasets using pagination (to avoid excessive token usage)
 - Searches the web using Duck Duck Go and scrapes the results for answers
-- Searches Zillow using Zip Codes and specific filters
-- Queries an external API to list Zip Codes for every US city
+- Searches Airbnb using "the best locations in town" and specific filters
 
-## How to Use the AI Real State Agent
-1. **Input Instructions**: Provide specific requirements, such as "I want to buy a house with a pool in Miami for less than 1 million dollars."
+## How to Use the AI Travel Agent
+1. **Input Instructions**: Provide specific requirements, such as "I want to travel with my partner to Barcelona next month and I'm on a budget."
 2. **Bring your own LLM (optional)**: Use your own OpenAI API key from [OpenAI platform](https://platform.openai.com/account/api-keys) and select your preferred GPT model. If left blank, we'll use ours and charge you for token usage.
 3. **Receive Results**: The agent will generate a list of suitable properties based on your criteria.
 
 ## Pricing Explanation
-The AI Real State Agent uses a **PAY PER EVENT** pricing model. Below are some of the key pricing structures:
+The AI Travel Agent uses a **PAY PER EVENT** pricing model. Below are some of the key pricing structures:
 
 | Event | Description | Price (USD) |
 | --- | --- | --- |
@@ -30,14 +29,14 @@ The AI Real State Agent uses a **PAY PER EVENT** pricing model. Below are some o
 | Price per 1000 OpenAI tokens for gpt-4o | Flat fee for every 1000 tokens (input/output) used with gpt-4o.| $0.01 |
 | Price per web page scraped | Flat fee for every web page scraped. | $0.01 |
 | Price per Duck Duck Go search | Flat fee for every Duck Duck Go search. | $0.01 |
-| Price per result when searching Zillow | Flat fee for every result when searching Zillow. | $0.002 |`
+| Price per result when searching Airbnb | Flat fee for every result when searching Airbnb. | $0.005 |`
 
 ## Input Requirements
-The following fields are recommeded to start using the AI Real State Agent:
+The following fields are recommeded to start using the AI Travel Agent:
 
 ```json
 {
-  "instructions": "Ask the agent for help to find the perfect home.",
+  "instructions": "Ask the agent for help to plan the perfect trip.",
   "openaiApiKey": "YOUR_OPENAI_API_KEY", // optional
   "model": "gpt-4o-mini"
 }
@@ -50,67 +49,76 @@ The following fields are recommeded to start using the AI Real State Agent:
 Upon successful execution, the expected output will resemble the following markdown format:
 
 ```
-Sure! I’ve carefully reviewed a total of **600 properties** in Miami that meet your criteria of having a pool and being priced under $1 million. After thorough consideration, I’ve selected the **top 5 properties** that I believe would be great options for you. Here they are:
+Sure! I explored a total of **100 places** to stay in Barcelona and selected the **top 5** based on their ratings, price, and location. Here are my recommendations for your week-long trip to Barcelona next month:
 
-### 1. 4074 NW 4th St, Miami, FL 33126
-- **Price:** $685,000
-- **Beds:** 2
-- **Baths:** 2
-- **Area:** 1,506 sqft
-- **Amenities:** Above ground pool
-- **Broker:** One Stop Realty
-- [View More Information](https://www.zillow.com/homedetails/4074-NW-4th-St-Miami-FL-33126/43843031_zpid/)
-![4074 NW 4th St](https://photos.zillowstatic.com/fp/729827e11f99fcf615a5ae1ac54b64e5-p_e.jpg)
-
-### 2. 4001 NW 3rd St, Miami, FL 33126
-- **Price:** $820,000
-- **Beds:** 2
-- **Baths:** 1
-- **Area:** 1,908 sqft
-- **Broker:** Belhouse Real Estate, LLC
-- [View More Information](https://www.zillow.com/homedetails/4001-NW-3rd-St-Miami-FL-33126/43843020_zpid/)
-![4001 NW 3rd St](https://photos.zillowstatic.com/fp/100c46f02d0c80d2bd66d95ab34dc6b6-p_e.jpg)
-
-### 3. 4621 NW 4th St, Miami, FL 33126
-- **Price:** $699,000
-- **Beds:** 5
-- **Baths:** 2
-- **Area:** 2,157 sqft
-- **Broker:** Lifestyle International Realty
-- [View More Information](https://www.zillow.com/homedetails/4621-NW-4th-St-Miami-FL-33126/43843819_zpid/)
-![4621 NW 4th St](https://photos.zillowstatic.com/fp/24a50d849b5572e3866469eab49d29a0-p_e.jpg)
-
-### 4. 1642 SW 84th Ct, Miami, FL 33155
-- **Price:** $995,000
-- **Beds:** 4
-- **Baths:** 2
-- **Area:** 1,890 sqft
-- **Amenities:** Big carport
-- [View More Information](https://www.zillow.com/homedetails/1642-SW-84th-Ct-Miami-FL-33155/44183450_zpid/)
-![1642 SW 84th Ct](https://photos.zillowstatic.com/fp/3b3d652f1d86778418faa0d38edf007c-p_e.jpg)
-
-### 5. 11431 SW 48th St, Miami, FL 33165
-- **Price:** $950,000
-- **Beds:** 4
-- **Baths:** 3
-- **Area:** 2,122 sqft
-- **Amenities:** Beautiful pool
-- **Broker:** Casa Simple LLC
-- [View More Information](https://www.zillow.com/homedetails/11431-SW-48th-St-Miami-FL-33165/44200045_zpid/)
-![11431 SW 48th St](https://photos.zillowstatic.com/fp/94ad67f6010bcbfbaca74e829608d5c9-p_e.jpg)
+### 1. H52MPS21 Cute Apartment with Balcony
+- **Rating**: 4.73 out of 5 (204 reviews)
+- **Price**: $197 per night (originally $257)
+- **Total for 7 nights**: $1,375
+- **Description**: A charming apartment featuring a lovely balcony, perfect for enjoying the Barcelona weather.
+- **Amenities**: 1 bedroom, 1 bed.
+- **Location**: Centrally located in Eixample, close to major attractions.
+- **[View More](https://www.airbnb.com/rooms/17039212?locale=en-US&currency=USD&adults=2&children=0&infants=0&pets=0&check_in=2025-04-01&check_out=2025-04-08)**
+![H52MPS21 Cute Apartment with Balcony](https://a0.muscache.com/im/pictures/miso/Hosting-17039212/original/33ad4c8a-5721-4152-9620-2d69212cf1e3.jpeg)
 
 ---
 
-### Why I Chose These Properties:
-- **Diversity in Size and Price:** The selected properties range from 2 to 5 bedrooms and vary in price, ensuring options for different needs and budgets.
-- **Pool Availability:** All properties have a pool, which is a key requirement you specified.
-- **Location:** These homes are located in various neighborhoods within Miami, providing a good mix of options.
+### 2. Sunny Design Apartment in the Center
+- **Rating**: 4.84 out of 5 (188 reviews)
+- **Price**: $203 per night
+- **Total for 7 nights**: $1,417
+- **Description**: A beautifully designed apartment located in the heart of Barcelona, ideal for exploring the city.
+- **Amenities**: 1 bedroom, 2 beds.
+- **Location**: Eixample, close to shopping and dining.
+- **[View More](https://www.airbnb.com/rooms/27724507?locale=en-US&currency=USD&adults=2&children=0&infants=0&pets=0&check_in=2025-04-01&check_out=2025-04-08)**
+![Sunny Design Apartment in the Center](https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6Mjc3MjQ1MDc%3D/original/f7a4fc53-a4d7-4693-b455-cd20bee03bcb.jpeg)
 
-If you have any further questions or would like to schedule a viewing for any of these properties, feel free to reach out!
+---
+
+### 3. H5ANEP1 Beautiful Apartment Next to Sagrada
+- **Rating**: 4.75 out of 5 (220 reviews)
+- **Price**: $184 per night (originally $234)
+- **Total for 7 nights**: $1,284
+- **Description**: A stunning apartment located near the iconic Sagrada Familia, perfect for sightseeing.
+- **Amenities**: 1 bedroom, 1 bed.
+- **Location**: Eixample, close to major landmarks.
+- **[View More](https://www.airbnb.com/rooms/17151552?locale=en-US&currency=USD&adults=2&children=0&infants=0&pets=0&check_in=2025-04-01&check_out=2025-04-08)**
+![H5ANEP1 Beautiful Apartment Next to Sagrada](https://a0.muscache.com/im/pictures/de701a89-d3b3-4e09-982d-b0fd756e7cbe.jpg)
+
+---
+
+### 4. Cozy Apartment for Two Close to Camp Nou
+- **Rating**: 4.89 out of 5 (47 reviews)
+- **Price**: $142 per night (originally $157)
+- **Total for 7 nights**: $992
+- **Description**: A cozy and newly renovated apartment, perfect for couples or solo travelers.
+- **Amenities**: Studio, 1 bed.
+- **Location**: L'Hospitalet de Llobregat, a short distance from Camp Nou.
+- **[View More](https://www.airbnb.com/rooms/1086535437179140288?locale=en-US&currency=USD&adults=2&children=0&infants=0&pets=0&check_in=2025-04-01&check_out=2025-04-08)**
+![Cozy Apartment for Two Close to Camp Nou](https://a0.muscache.com/im/pictures/miso/Hosting-1086535437179140288/original/7b637fc7-9632-454a-9b56-bbb6299fdf7d.jpeg)
+
+---
+
+### 5. Sweett | Sepulveda Atic
+- **Rating**: 4.62 out of 5 (87 reviews)
+- **Price**: $223 per night (originally $261)
+- **Total for 7 nights**: $1,560
+- **Description**: A stylish attic apartment with great views, perfect for a romantic getaway.
+- **Amenities**: 1 bedroom, 1 bed.
+- **Location**: Eixample, close to public transport.
+- **[View More](https://www.airbnb.com/rooms/42373718?locale=en-US&currency=USD&adults=2&children=0&infants=0&pets=0&check_in=2025-04-01&check_out=2025-04-08)**
+![Sweett | Sepulveda Atic](https://a0.muscache.com/im/pictures/prohost-api/Hosting-42373718/original/cb5d4d66-a44f-4b47-93a6-2426a412ea4a.jpeg)
+
+---
+
+### Summary
+These options were selected based on their high ratings, reasonable prices, and prime locations in Barcelona. Each of these accommodations offers a unique experience, whether you prefer the vibrant atmosphere of Eixample or the historical charm of the Gothic Quarter. 
+
+If you have any specific preferences or additional requests, feel free to let me know!
 ```
 
 ## FAQ
-**Q: What is the best way to use the AI Real State Agent?**  
+**Q: What is the best way to use the AI Travel Agent?**  
 A: Provide clear and specific instructions to get the most relevant results.
 
 **Q: How can I obtain an OpenAI API key?**  

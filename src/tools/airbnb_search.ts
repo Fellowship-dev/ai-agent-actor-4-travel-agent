@@ -5,32 +5,40 @@ import { z } from 'zod';
 import { chargeForToolUsage } from '../utils/ppe_handler.js';
 
 /**
- * Interface for parameters required by ZillowSearch class.
+ * Interface for parameters required by AirbnbSearch class.
  */
-export interface ZillowSearchParams {
+export interface AirbnbSearchParams {
   apifyClient: ApifyClient;
   log: Log | Console;
 }
 
 /**
- * Tool that uses the ZillowSearch function
+ * Tool that uses the AirbnbSearch function
  */
-export class ZillowSearch extends StructuredTool {
+export class AirbnbSearch extends StructuredTool {
   protected log: Log | Console;
   protected apifyClient: ApifyClient;
 
-  name = 'zillow_search';
+  name = 'airbnb_search';
 
-  description = 'Searches for properties on Zillow based on a list of Zip Codes (at least one) and returns an Apify datasetId to explore the results.';
+  description = 'Searches for properties on Airbnb based on a list of Zip Codes (at least one) and returns an Apify datasetId to explore the results.';
 
   schema = z.object({
-    zipCodes: z.string().array(),
+    locations: z.string().array(),
     minimumPrice: z.number(),
     maximumPrice: z.number(),
-    forRent: z.boolean(),
+    adults: z.number(),
+    children: z.number(),
+    infants: z.number(),
+    pets: z.number().optional(),
+    checkIn: z.string().describe('yyyy-mm-dd'),
+    checkOut: z.string().describe('yyyy-mm-dd'),
+    minBathrooms: z.number().optional(),
+    minBedrooms: z.number().optional(),
+    minBeds: z.number().optional(),
   });
 
-  constructor(fields?: ZillowSearchParams) {
+  constructor(fields?: AirbnbSearchParams) {
     super(...arguments);
     this.log = fields?.log ?? console;
     this.apifyClient = fields?.apifyClient ?? new ApifyClient();
@@ -38,13 +46,20 @@ export class ZillowSearch extends StructuredTool {
 
   override async _call(arg: z.output<typeof this.schema>) {
     const actorInput = {
-      forRent: arg.forRent,
-      forSaleByAgent: true,
-      forSaleByOwner: true,
+      adults: arg.adults,
+      children: arg.children,
+      infants: arg.infants,
+      pets: arg.pets,
+      checkIn: arg.checkIn,
+      checkOut: arg.checkOut,
+      minBathrooms: arg.minBathrooms,
+      minBedrooms: arg.minBedrooms,
+      minBeds: arg.minBeds,
+      locationQueries: arg.locations.slice(0, 3),
       priceMax: arg.maximumPrice,
       priceMin: arg.minimumPrice,
-      sold: false,
-      zipCodes: arg.zipCodes.slice(0, 3),
+      currency: 'USD',
+      locale: 'en-US',
     };
     // checks for cached stored version
     const key = JSON.stringify(actorInput);
@@ -66,11 +81,11 @@ export class ZillowSearch extends StructuredTool {
       );
     } else {
       this.log.debug(
-        `Calling ZillowSearch with input: ${JSON.stringify(actorInput)}`
+        `Calling AirbnbSearch with input: ${JSON.stringify(actorInput)}`
       );
       const actorRun = await this.apifyClient
-        .actor('maxcopell/zillow-zip-search')
-        .call(actorInput, { maxItems: 1000 });
+        .actor('tri_angle/new-fast-airbnb-scraper')
+        .call(actorInput, { maxItems: 100 }); // DEBUG
       await this.apifyClient
         .dataset(actorRun.defaultDatasetId)
         .update({ name: datasetName });
@@ -80,9 +95,9 @@ export class ZillowSearch extends StructuredTool {
       totalItems = dataset.total;
       await chargeForToolUsage(this.name, dataset.total);
     }
-    this.log.debug(`ZillowSearch response: ${username}/${datasetName}`);
-    return `Results for Zillow Search can be found in dataset with id '${username}/${datasetName}'. This dataset contains ${totalItems} items in total.`;
+    this.log.debug(`AirbnbSearch response: ${username}/${datasetName}`);
+    return `Results for Airbnb Search can be found in dataset with id '${username}/${datasetName}'. This dataset contains ${totalItems} items in total.`;
   }
 }
 
-export default ZillowSearch;
+export default AirbnbSearch;

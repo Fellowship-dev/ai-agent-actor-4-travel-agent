@@ -2,9 +2,9 @@ import dotenv from 'dotenv';
 import { Actor, ApifyClient, log } from 'apify';
 import { StateGraph, StateGraphArgs, START, END } from '@langchain/langgraph';
 import LocationAgent from './agents/location.js';
-import PropertyAgent from './agents/property.js';
+import DeciderAgent from './agents/decider.js';
+import ResearcherAgent from './agents/researcher.js';
 import SuccessAgent from './agents/success.js';
-import ZillowAgent from './agents/zillow.js';
 import { chargeForActorStart } from './utils/ppe_handler.js';
 
 // if available, .env variables are loaded
@@ -121,49 +121,49 @@ async function locationNode(state: StateSchema) {
   return { bestLocations: response.output };
 }
 
-async function zillowNode(state: StateSchema) {
-  const zillowAgent = new ZillowAgent({
+async function researcherNode(state: StateSchema) {
+  const researcherAgent = new ResearcherAgent({
     apifyClient,
     modelName,
     openaiApiKey: openaiApiKey ?? process.env.OPENAI_API_KEY,
     log,
   });
-  const { agentExecutor, costHandler } = zillowAgent;
+  const { agentExecutor, costHandler } = researcherAgent;
   const input = 'The user asked sent this exact query:\n\n'
     + `'${state.instructions}'\n\n`
-    + 'You asked someone for help to get the best locations in that city and state. '
+    + 'You asked someone for help to get the best locations in that city and country. '
     + 'The answer you received was this:\n\n'
     + `'${state.bestLocations}'\n\n`
-    + 'Please answer the user accordingly.';
+    + 'Please make some research to gather information to be able to answer the user accordingly.';
   const response = await agentExecutor.invoke({ input });
-  log.debug(`zillowAgent 🤖 : ${response.output}`);
+  log.debug(`researcherAgent 🤖 : ${response.output}`);
   const { datasetId, totalItems, assumptions } = JSON.parse(response.output);
   await costHandler.logOrChargeForTokens(modelName, tokenCostActive);
   return { datasetId, totalItems, assumptions };
 }
 
-async function propertyNode(state: StateSchema) {
-  const propertyAgent = new PropertyAgent({
+async function deciderNode(state: StateSchema) {
+  const deciderAgent = new DeciderAgent({
     apifyClient,
     modelName,
     openaiApiKey: openaiApiKey ?? process.env.OPENAI_API_KEY,
     log,
   });
-  const { agentExecutor, costHandler } = propertyAgent;
+  const { agentExecutor, costHandler } = deciderAgent;
   const input = 'The user asked sent this exact query:\n\n'
     + `'${state.instructions}'\n\n`
-    + 'You asked someone for help to get the best locations in that city and state. '
+    + 'You asked someone for help to get the best locations in that city and country. '
     + 'The answer you received was this:\n\n'
     + `'${state.bestLocations}'\n\n`
-    + 'You asked someone else for help to get the best properties in those locations using Zillow. '
+    + 'You asked someone else for help to get the best places to stay in in those locations using Airbnb. '
     + 'The answer you received was this:\n\n'
-    + `Apify dataset ID: '${state.datasetId}'\n`
-    + `Total items in dataset: '${state.totalItems}'\n`
-    + `Assumptions made when searching: '${state.assumptions}'\n\n`
-    + `Total properties already checked: itemsChecked='${state.itemsChecked}'\n`
-    + 'Please explore the dataset for the best properties.';
+    + `Airbnb Apify dataset ID: '${state.datasetId}'\n`
+    + `Total items in Airbnb dataset: '${state.totalItems}'\n`
+    + `Assumptions made when cretating the Airbnb dataset:: '${state.assumptions}'\n`
+    + `Total results already checked in Airbnb dataset: itemsChecked='${state.itemsChecked}'\n\n`
+    + 'Please explore theavailable datasets for the best results.';
   const response = await agentExecutor.invoke({ input });
-  log.debug(`propertyAgent 🤖 : ${response.output}`);
+  log.debug(`deciderAgent 🤖 : ${response.output}`);
   const { itemsChecked, recommendations } = JSON.parse(response.output);
   await costHandler.logOrChargeForTokens(modelName, tokenCostActive);
   return {
@@ -172,7 +172,7 @@ async function propertyNode(state: StateSchema) {
   };
 }
 
-const propertiesCheckedRouter = (state: StateSchema) => {
+const resultsCheckedRouter = (state: StateSchema) => {
   const allResultsChecked = state.itemsChecked >= state.totalItems;
   log.debug(`allResultsChecked: ${allResultsChecked}`);
   const thousandResultsChecked = state.itemsChecked > 1000;
@@ -188,7 +188,7 @@ const propertiesCheckedRouter = (state: StateSchema) => {
     return 'success';
   }
   // if none of the above criteria are met, it runs the same node again
-  return 'property';
+  return 'decider';
 };
 
 async function successNode(state: StateSchema) {
@@ -204,13 +204,13 @@ async function successNode(state: StateSchema) {
     + 'You asked someone for help to get the best locations in that city and state. '
     + 'The answer you received was this:\n\n'
     + `'${state.bestLocations}'\n\n`
-    + 'You asked someone else for help to get the best properties in those locations using Zillow and their expert jugdgement. '
+    + 'You asked someone else for help to get the best places to stay in those locations using Airbnb and their expert jugdgement. '
     + 'The answer you received was this:\n\n'
-    + `Assumptions made when searching Zillow: '${state.assumptions}'\n\n`
-    + `Total properties checked: '${state.itemsChecked}'\n`
-    + `Total properties recommended: '${state.recommendations.length}'\n`
-    + `Best properties in stringified JSON format: '${JSON.stringify(state.recommendations.slice(0, 10))}'\n`
-    + 'Please select the top 5 properties and answer the user explaining the whole process in markdown format.';
+    + `Assumptions made when searching Airbnb: '${state.assumptions}'\n\n`
+    + `Total places to stay checked: '${state.itemsChecked}'\n`
+    + `Total places to stay recommended: '${state.recommendations.length}'\n`
+    + `Best places to stay in stringified JSON format: '${JSON.stringify(state.recommendations)}'\n`
+    + 'Please select the top 5 places to stay and answer the user explaining the whole process in markdown format.';
   const response = await agentExecutor.invoke({ input });
   log.debug(`successNode 🤖 : ${response.output}`);
   await costHandler.logOrChargeForTokens(modelName, tokenCostActive);
@@ -219,13 +219,13 @@ async function successNode(state: StateSchema) {
 
 const graph = new StateGraph({ channels: graphState })
   .addNode('location', locationNode)
-  .addNode('zillow', zillowNode)
-  .addNode('property', propertyNode)
+  .addNode('researcher', researcherNode)
+  .addNode('decider', deciderNode)
   .addNode('success', successNode)
   .addEdge(START, 'location')
-  .addEdge('location', 'zillow')
-  .addEdge('zillow', 'property')
-  .addConditionalEdges('property', propertiesCheckedRouter)
+  .addEdge('location', 'researcher')
+  .addEdge('researcher', 'decider')
+  .addConditionalEdges('decider', resultsCheckedRouter)
   .addEdge('success', END);
 
 const runnable = graph.compile();
@@ -238,7 +238,7 @@ const response = await runnable.invoke(
 log.debug(`Agent 🤖 : ${response.output}`);
 
 await Actor.pushData({
-  actorName: 'AI Real State Agent',
+  actorName: 'AI Travel Agent',
   response: response.output,
 });
 

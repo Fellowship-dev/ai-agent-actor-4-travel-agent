@@ -7,6 +7,5 @@ export const PPE_EVENT = {
   GPT_O1_MINI: 'openai-1000-tokens-gpt-o1-mini',
   DUCK_DUCK_GO: 'duck-duck-go',
   WEBSITE_SCRAPER: 'website-scraper',
-  ZILLOW_SEARCH: 'zillow-search',
-  ZIP_CODE_SEARCH: 'zip-code-search',
+  AIRBNB_SEARCH: 'airbnb-search',
 } as const;

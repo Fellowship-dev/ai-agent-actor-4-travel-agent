@@ -1,8 +1,8 @@
 {
-  "name": "ai-real-state-agent",
+  "name": "ai-travel-agent",
   "version": "0.0.1",
   "type": "module",
-  "description": "This is an example of a Crawlee project.",
+  "description": "AI Agent Actor that leverages Apify to search for travel opportunities.",
   "engines": {
     "node": ">=22.0.0"
   },

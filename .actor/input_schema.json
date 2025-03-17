@@ -4,9 +4,9 @@
   "schemaVersion": 1,
   "properties": {
     "instructions": {
-      "title": "Instructions for the AI Real State Agent",
+      "title": "Instructions for the AI Travel Agent",
       "type": "string",
-      "description": "Ask the agent for help to find the perfect home.",
+      "description": "Ask the agent for help to plan the perfect trip.",
       "editor": "textarea",
       "prefill": "I want to buy a house with a pool in Miami for less than 1 million dollars. Can you help me?"
     },

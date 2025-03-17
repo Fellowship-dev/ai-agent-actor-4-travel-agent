@@ -5,7 +5,6 @@ import { ChatOpenAI } from '@langchain/openai';
 import { StructuredToolInterface } from '@langchain/core/tools';
 import DuckDuckGo from '../tools/duck_duck_go.js';
 import WebsiteScraper from '../tools/website_scraper.js';
-// import ZipCodeSearch from '../tools/zip_code_search.js';
 import { CostHandler } from '../utils/cost_handler.js';
 
 /**
@@ -60,32 +59,30 @@ export class LocationAgent {
     // Tools are initialized to be passed to the agent
     const duckDuckGo = new DuckDuckGo({ apifyClient, log });
     const websiteScraper = new WebsiteScraper({ apifyClient, log });
-    // const zipCodeSearch = new ZipCodeSearch({ log });
     return [
       duckDuckGo,
       websiteScraper,
-      // zipCodeSearch,
     ];
   }
 
   protected buildPrompt(): ChatPromptTemplate {
     return ChatPromptTemplate.fromMessages([
       ['system',
-        'You are a experienced real state agent that wants to help the user to find the perfect home. '
-        + "You will stick to the following steps, but notify the user if you get stuck or can't continue. "
-        + 'Step 1. The user will ask you for advice regarding a specific city in the US. '
-        + 'If the user does not provide a state (like CA or NY), try to guess to which state a city belongs to. '
-        + 'If the user does not provide a state, try to guess to which state a city belongs to. '
-        + 'If from the input you cannot get a city and a state or you think that the city is not in US territory, '
+        'You are a experienced travel agent that wants to help the user plan their trip. '
+        + "You will stick to the following steps, ignoring the specifics of the user's query and focusing only on finding the best locations. "
+        + 'Step 1. The user will ask you for advice regarding traveling to a specific city in the world or even a neighborhood in a city. '
+        + "You don't care where the user lives, since you are not in charge of flights. "
+        + 'If the user does not specify a budget, select mid range (and not low budget or luxury). '
+        + 'If the user does not provide a country, try to guess to which country the city belongs to. '
+        + 'If from the input you cannot get a city and a country or you think that the specified city should not be visited by tourists, '
         + 'end the conversation and help the user with the input. '
-        + "Make sure to convert the state to a two-letter ISO standard. For example, if the user says 'New York', store it as 'NY' before using it. \n"
-        // 2. Fetch best Zip Codes to live using DuckDuckGo
+        // 2. Fetch best neighborhoods to stay at using DuckDuckGo
         + 'Step 2. With the city and state in hand, use DuckDuckGo replacing the following query: '
-        + "'best places to live near [city], [state] by zip code site:niche.com'. "
+        + "'where to stay and where not to stay in [city], [country]'. "
         + 'If there the results, use a website scraper on the URLs you think will show you this information. '
-        + 'Iterate until you find the best 3 Zip Codes near the selected city. '
-        + "For best performance when using the website scraper, you can use method='getBestZipCodesToLive' and output=null'. "
-        + 'Instead of answering the original question, just return the top 3 Zip Codes and explain to the user why you selected those Zip Codes. \n'
+        + 'Iterate until you find the best 3 locations or neighborhoods in the selected city. '
+        + "For best performance when using the website scraper, you can use method='getBestPlacesToStay' and output=null'. "
+        + 'Instead of answering the original question, just return the top 3 locations or neighborhoods and explain to the user why you selected those locations or neighborhoods. \n'
       ],
       ['placeholder', '{chat_history}'],
       ['human', '{input}'],

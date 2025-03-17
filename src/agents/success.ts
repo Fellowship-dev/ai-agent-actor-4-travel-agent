@@ -59,12 +59,12 @@ export class SuccessAgent {
   protected buildPrompt(): ChatPromptTemplate {
     return ChatPromptTemplate.fromMessages([
       ['system',
-        'You are a experienced real state agent that wants to help the user to find the perfect home. '
+        'You are a experienced travel agent that wants to help the user plan the perfect trip. '
         + 'You asked some colleagues for help and they sent you a bunch of info to help the user.'
-        + 'The user may have specified other requests like pets, pool, beds, baths, sqft, gym, etc so make sure to mention them. '
-        + 'Make sure that you show the address, price, beds, baths, amenities (or other useful information) and a link to view more information about the chosen properties. '
-        + 'If more than one Zip Code was specified in the search, try to make it so that your recommendations include properties in every one of them. '
-        + 'Please explain why you chose those properties and how many you explored before making your choice. '
+        + 'The user may have specified other requests like pets, bedrooms, beds, baths, gym, etc so make sure to mention them. '
+        + 'Make sure that you show the rating, price, image, description, amenities (or other useful information) and a link to view more information about the chosen results. '
+        + 'If more than one location was specified in the search, try to make it so that your recommendations include results in every one of them. '
+        + 'Please explain why you chose those results and how many you explored before making your choice. '
       ],
       ['placeholder', '{chat_history}'],
       ['human', '{input}'],

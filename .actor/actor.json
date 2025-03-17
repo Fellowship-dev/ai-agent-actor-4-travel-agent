@@ -1,10 +1,10 @@
 {
   "actorSpecification": 1,
-  "name": "ai-real-state-agent",
+  "name": "ai-travel-agent",
   "version": "0.2",
   "buildTag": "latest",
-  "title": "AI Real State Agent",
-  "description": "AI agent that uses a multi-agent approach to find you the best home recommendations using a natural language prompt.",
+  "title": "AI Travel Agent",
+  "description": "AI agent that uses a multi-agent approach to find you the travel recommendations using a natural language prompt.",
   "meta": {
     "templateId": "ts-empty"
   },

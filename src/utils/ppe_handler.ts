@@ -54,11 +54,8 @@ export async function chargeForToolUsage(toolName: string, count: number) {
   case 'website_scraper':
     eventName = PPE_EVENT.WEBSITE_SCRAPER;
     break;
-  case 'zillow_search':
-    eventName = PPE_EVENT.ZILLOW_SEARCH;
-    break;
-  case 'zip_code_search':
-    eventName = PPE_EVENT.ZIP_CODE_SEARCH;
+  case 'airbnb_search':
+    eventName = PPE_EVENT.AIRBNB_SEARCH;
     break;
   default:
     eventName = '';
